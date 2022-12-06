@@ -22,9 +22,8 @@ typedef struct URL{
     int port;
 } URL;
 
-
+void newURL(URL *urlStruct);
 int parseURL(char *url, URL *urlStruct);
-void initURL(URL *urlStruct);
 int getIP(URL *urlStruct);
 
 char* processElementUntilChar(char* str, char chr);

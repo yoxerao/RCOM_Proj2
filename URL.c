@@ -1,12 +1,11 @@
 #include "URL.h"
 
-void initURL(URL *urlStruct) {
+void newURL(URL *urlStruct) {
     memset(urlStruct->user, 0, sizeof(url_content));
     memset(urlStruct->password, 0, sizeof(url_content));
     memset(urlStruct->host, 0, sizeof(url_content));
     memset(urlStruct->path, 0, sizeof(url_content));
     memset(urlStruct->filename, 0, sizeof(url_content));
-
     urlStruct->port = 21;
 }
 

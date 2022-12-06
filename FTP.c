@@ -212,11 +212,11 @@ int ftpSend(FTP* ftp, const char* str, size_t size) {
 	int bytes;
 
 	if ((bytes = write(ftp->ctrl_sckt_fd, str, size)) <= 0) {
-		printf("WARNING: Nothing was send.\n");
+		printf("WARNING: Nothing was sent.\n");
 		return 1;
 	}
 
-	printf("Bytes send: %d\nInfo: %s\n", bytes, str);
+	printf("Bytes sent: %d\nInfo: %s\n", bytes, str);
 
 	return 0;
 }
