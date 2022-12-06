@@ -1,0 +1,95 @@
+tux23 ligado a porta 3 do switch
+tux24 ligado a porta 4 do switch
+tux22 ligado a porta 12 do switch
+tux24.eth1 ligado a porta 22 do switch
+router eth2 ligada a porta 24 do switch
+
+resets: 
+ligar s0 a rs323, rs323 a switch console. 
+dar /system reset-configuration para a switch
+e systemctl restart networking em todos os pcs
+
+exp1:
+1. tux3 - ifconfig eth0 172.16.20.1/24 (IP)
+2. tux4 - ifconfig eth0 172.16.20.254/24 (IP)
+3. registar IP e MAC adresses (tux3-00:21:5a:5a:78:c7 tux4-00:22:64:a7:26:a2)
+4. ping para verificar conexão, dar delete das ARP table entries (arp -d ipaddress)
+5. user wireshark
+
+exp2:
+1. tux2 - ifconfig eth0 172.16.21.1/24
+2. criar 2 pontes: 
+/interface bridge add name=bridge20
+/interface bridge add name=bridge21
+3. remover portas da bridge default
+/interface bridge port remove [find interface =etherX]
+X=3 X=4 X=12
+4. adicionar portas as bridges 20 e 21
+/interface bridge port add bridge=bridge20 interface=ether3
+/interface bridge port add bridge=bridge20 interface=ether4
+/interface bridge port add bridge=bridge21 interface=ether12
+5. usar wireshark
+
+exp3:
+1. transformar tux4 num router:
+tux4 - ifconfig eth1 172.16.21.253/24
+2. dar delete da conexão da bridge default e adicionar À bridge 21 
+3. enable ip forwarding: echo 1 > /proc/sys/net/ipv4/ip_forward
+4. disable ICMP echo-ignore-broadcast: echo 0 > /proc/sys/net/ipv4/icmp_echo_ignore_broadcasts
+5.
+tux24.eth0 - igual a antes
+tux24.eth1 - IP - 172.16.21.253
+             MAC - 00:e0:7d:c8:7c:55
+             
+6. add a route to a subnetwork:
+tux3: route add -net 172.16.21.0/24 gw 172.16.20.254
+tux2: route add -net 172.16.20.0/24 gw 172.16.21.253
+7. usar wireshark no tux3 e dar ping nas outras network interfaces
+8. usar wireshark no tux4, dar clean das arp tables, dar ping no tux3 do tux2 e parar
+
+exp4:
+1. conectar RS232 a routermtik (cabo), ether1 do router ao P2.1 e ether2 a uma porta no bridge21
+
+2. Configurar o ip address:
+    - no gtkterm , /ip address add address= 172.16.2.29/24 interface=ether1(define ether1 como internet port)
+    
+    /ip address add address= 172.16.21.254/24 interface=ether2(define ether2 com o ip pa route da switch)
+    
+    /ip route add dst-adress=0.0.0.0/0 gateway=172.16.2.254 (conectar router a net)
+    
+    - dar delete da conexão da bridge default e adicionar À bridge 21 
+    (ver se ha mais q uma route definida por ether)
+    
+2. ir ao tux3 e fzr route add default gw 172.16.20.254 (tux4)
+3. apagar rotas extra (route del -net [destination] gw [gateway] netmask [Genmask] dev [Iface]                           
+
+4. (in tux2 and 4) adicionar router as default route ->route add default gw 172.16.21.254
+5. (in tux2 e no router) adicionar route para 172.16.20.0/24 
+                         tux2 ja estava feita route add 172.16.20.0/24 gw 172.16.21.253
+                         router -> /ip route add dst-address= 172.16.20.0/24 gateway= 172.16.21.253
+8.(in tux3) ping tux2,tux4 e router e wireshark # CHECK ACCEPT REDIRECTS
+
+9.(in tux2) tirar redirects( echo 0 means send flag 0) -> echo 0 >/proc/sys/met/ipv4/conf/eth0/accept_redirects
+                                                 echo 0 >/proc/sys/met/ipv4/conf/eth0/accept_redirects
+                                                 
+10. delete route para a rede20 -> route del -net 172.16.20.0 gw 172.16.21.253 netmask 255.255.255.255 dev eth0
+
+11. ping 172.16.20.1
+
+12.traceroute 172.16.20.1
+
+13.route add 172.16.20.0/24 gw 172.16.21.253 
+    traceroute 172.16.20.1
+    
+14. aceitar redirects-> echo 1 >/proc/sys/met/ipv4/conf/eht0/accept_redirects
+
+   echo 1 >/proc/sys/met/ipv4/conf/eht0/accept_redirects
+   
+   delete route ->route del -net 172.16.20.0 gw 172.16.21.253 netmask 255.255.255.255 dev eth0
+   
+   traceroute 172.16.20.1
+   
+15. ping ou traceroute 172.16.2.254
+16.(in gtkterm) /ip firewall nat disable 0
+17. repeat step 15
+  

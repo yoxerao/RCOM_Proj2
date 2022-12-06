@@ -10,20 +10,19 @@
 #include <stdlib.h>
 #include <sys/types.h>
 
-typedef char url_content[256];
 
+//ftp://[<user>:<password>@]<host>/<url-path>
 typedef struct URL{
-    char *user;
-    char *password;
-    char *host;
-    char *ip;
-    char *path;
-    char *filename;
+    char user[256];
+    char password [256];
+    char host[256];
+    char path[256];
+    char filename[256];
+    char ip[256];
     int port;
 } URL;
 
-void newURL(URL *urlStruct);
-int parseURL(char *url, URL *urlStruct);
-int getIP(URL *urlStruct);
 
-char* processElementUntilChar(char* str, char chr);
+int getIP(char *host, URL *urlStruct);
+int getFile(URL *urlStruct);
+int parseURL(char *url, URL *urlStruct);
