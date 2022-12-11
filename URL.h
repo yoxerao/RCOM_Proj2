@@ -1,17 +1,15 @@
 #pragma once
-#include <string.h>
-#include <netdb.h>
+#include <stdio.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <errno.h>
-#include <regex.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <sys/types.h>
+#include <unistd.h>
+#include <netdb.h>
 
+#include <string.h>
 
-//ftp://[<user>:<password>@]<host>/<url-path>
+// URL structure
 typedef struct URL{
     char user[256];
     char password [256];
@@ -24,5 +22,4 @@ typedef struct URL{
 
 
 int getIP(char *host, URL *urlStruct);
-int getFile(URL *urlStruct);
 int parseURL(char *url, URL *urlStruct);

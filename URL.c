@@ -1,6 +1,6 @@
 #include "URL.h"
 
-int getIP(char *host, URL *urlStruct){
+int getIp(char *host, struct URL *urlStruct){
     struct hostent *h;
 
     if ((h = gethostbyname(host)) == NULL){
@@ -8,7 +8,6 @@ int getIP(char *host, URL *urlStruct){
         return 1;
     }
 
-    printf("Host name  : %s\n", h->h_name);
     printf("IP Address : %s\n", inet_ntoa(*((struct in_addr *) h->h_addr)));
 
     strcpy(urlStruct->ip,inet_ntoa(*((struct in_addr *) h->h_addr)));
@@ -16,22 +15,46 @@ int getIP(char *host, URL *urlStruct){
     return 0;
 }
 
-//ftp://[<user>:<password>@]<host>/<url-path>
-int getFile(URL *urlStruct){
-    if (strcmp(urlStruct->path, "") == 0){
-        printf("Error: No path specified\n");
+int parseUrl(char *url, struct URL *urlStruct ){
+    char fullpath[256];
+    char* token;
+    char* ftp = strtok(url, "/");       // ftp:
+    char* urlrest = strtok(NULL, "/");  // [<user>:<password>@]<host>
+    char* path = strtok(NULL, "");      // <url-path>
+
+    if (strcmp(ftp, "ftp:") != 0){
+        printf("Error: Not using ftp\n");
         return 1;
     }
-    char path[256];
-    strcpy(path, urlStruct->path);
-    char* tk = strtok(path, "/");
-    while(tk != NULL){
-        strcpy(urlStruct->filename, tk);
-        tk = strtok(NULL, "/");
+
+    char* user = strtok(urlrest, ":");
+    char* pass = strtok(NULL, "@");
+
+    // no user:password given
+    if (pass == NULL)
+    {
+        user = "anonymous";
+        pass = "pass";
+        strcpy(urlStruct->host, urlrest);
+    } else
+        strcpy(urlStruct->host, strtok(NULL, ""));
+
+    strcpy(urlStruct->path, path);
+    strcpy(urlStruct->user, user);
+    strcpy(urlStruct->password, pass);
+
+    if(getIp(urlStruct->host,urlStruct) != 0){
+        printf("Error getting host name\n");
+        return 1;
     }
+
+    // extract the file name from the path
+    strcpy(fullpath, urlStruct->path);
+    token = strtok(fullpath, "/");
+    while( token != NULL ) {
+        strcpy(urlStruct->filename, token);
+        token = strtok(NULL, "/");
+    }
+
     return 0;
 }
-
-int parseData(char *url, URL *urlStruct){
-    char* ftp = strtok(url, "/");       // ftp:
-    char* urlrest = strtok(NULL, "/");  // <user

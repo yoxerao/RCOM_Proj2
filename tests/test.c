@@ -1,4 +1,83 @@
-#include "FTP.h"
+#include <stdio.h>
+//#include <sys/socket.h>
+//#include <netinet/in.h>
+//#include <arpa/inet.h>
+#include <stdlib.h>
+#include <unistd.h>
+//#include <netdb.h>
+
+#include <string.h>
+
+// URL structure
+typedef struct URL{
+    char user[256];
+    char password [256];
+    char host[256];
+    char path[256];
+    char filename[256];
+    char ip[256];
+    int port;
+} URL;
+
+int getIp(char *host, struct URL *urlStruct){
+    struct hostent *h;
+
+    if ((h = gethostbyname(host)) == NULL){
+        herror("gethostbyname()");
+        return 1;
+    }
+
+    printf("IP Address : %s\n", inet_ntoa(*((struct in_addr *) h->h_addr)));
+
+    strcpy(urlStruct->ip,inet_ntoa(*((struct in_addr *) h->h_addr)));
+
+    return 0;
+}
+
+int parseUrl(char *url, struct URL *urlStruct ){
+    char fullpath[256];
+    char* token;
+    char* ftp = strtok(url, "/");       // ftp:
+    char* urlrest = strtok(NULL, "/");  // [<user>:<password>@]<host>
+    char* path = strtok(NULL, "");      // <url-path>
+
+    if (strcmp(ftp, "ftp:") != 0){
+        printf("Error: Not using ftp\n");
+        return 1;
+    }
+
+    char* user = strtok(urlrest, ":");
+    char* pass = strtok(NULL, "@");
+
+    // no user:password given
+    if (pass == NULL)
+    {
+        user = "anonymous";
+        pass = "pass";
+        strcpy(urlStruct->host, urlrest);
+    } else
+        strcpy(urlStruct->host, strtok(NULL, ""));
+
+    strcpy(urlStruct->path, path);
+    strcpy(urlStruct->user, user);
+    strcpy(urlStruct->password, pass);
+
+    if(getIp(urlStruct->host,urlStruct) != 0){
+        printf("Error resolving host name\n");
+        return 1;
+    }
+
+    // extract the file name from the path
+    strcpy(fullpath, urlStruct->path);
+    token = strtok(fullpath, "/");
+    while( token != NULL ) {
+        strcpy(urlStruct->filename, token);
+        token = strtok(NULL, "/");
+    }
+
+    return 0;
+}
+
 
 int startConnection(char *ip, int port, int *sockfd){
     struct sockaddr_in server_addr;
@@ -94,8 +173,8 @@ int readReply(FILE * socket){
     return 0;
 }
 
-int writeToFile(char *file, int socket ){
-    FILE *file = fopen(file, "w");
+int writeFile(char *filename, int socket ){
+    FILE *file = fopen(filename, "w");
 
     if(file == NULL){
         printf("Error opening file\n");
@@ -109,11 +188,28 @@ int writeToFile(char *file, int socket ){
         return 1;
     }
     
-    while(read(socket, c, 1) > 0){  // read one byte at a time
+    while(read(socket, c, 1) > 0){
         fputc(*c, file);
     }
 
     free(c);
     fclose(file);
+    return 0;
+}
+
+int main(void) {
+    char *url = "ftp://user:password@host/path/to/file";
+    URL urlStruct = {0};
+
+    if (parseUrl(url, &urlStruct) != 0) {
+        printf("Error parsing URL\n");
+        return 1;
+    }
+
+    printf("user: %s\n", urlStruct.user);
+    printf("password: %s\n", urlStruct.password);
+    printf("host: %s\n", urlStruct.host);
+    printf("path: %s\n", urlStruct.path);
+
     return 0;
 }

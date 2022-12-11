@@ -1,3 +1,4 @@
+#pragma once
 #include <string.h>
 #include <netdb.h>
 #include <stdio.h>
@@ -10,20 +11,9 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
-typedef struct FTP
-{
-    int ctrl_sckt_fd; 
-    int data_sckt_fd; 
-} FTP;
-
-int ftpConnect(FTP* ftp, const char* ip, int port);
-int ftpLogin(FTP* ftp, const char* user, const char* password);
-int ftpCWD(FTP* ftp, const char* path);
-int ftpPasv(FTP* ftp);
-int ftpRetr(FTP* ftp, const char* filename);
-int ftpDownload(FTP* ftp, const char* filename);
-int ftpDisconnect(FTP* ftp);
-
-int ftpSend(FTP* ftp, const char* str, size_t size);
-int ftpRead(FTP* ftp, char* str, size_t size);
+int startConnection(char *ip, int port, int *sockfd);
+void getPortPlusIp(int *port, char *ip, FILE *socket);
+int sendCommand(int socket, char * cmd);
+int readReply(FILE * socket);
+int writeToFile(char *file, int socket );
 
