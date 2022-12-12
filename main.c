@@ -66,10 +66,8 @@ int main(int argc, char **argv) {
     //read ip and port 
     char ip[32];
     int port;
-    if (getPortPlusIp(ip, &port, readSocket) != 0){
-		printf("Error getting port and ip\n");
-		return 1;
-	}
+    getPortPlusIp(&port, ip, readSocket);
+	
 
     // Connect to the server on the provided IP and port and retrieve the file
     if(startConnection(ip, port, &socket) != 0){

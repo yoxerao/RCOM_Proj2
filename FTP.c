@@ -79,7 +79,7 @@ int readReply(FILE * socket){
     char * end;
 
     while(getline(&reply, &reply_size, socket) > 0){
-
+        printf("> %s", reply);
         if(reply[3] == ' '){
             code = strtol(reply, &end, 10);
             if(code >= 500 && code <= 559){
@@ -94,8 +94,8 @@ int readReply(FILE * socket){
     return 0;
 }
 
-int writeToFile(char *file, int socket ){
-    FILE *file = fopen(file, "w");
+int writeToFile(char *fileN, int socket ){
+    FILE *file = fopen(fileN, "w");
 
     if(file == NULL){
         printf("Error opening file\n");

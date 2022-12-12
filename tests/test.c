@@ -1,10 +1,10 @@
 #include <stdio.h>
-//#include <sys/socket.h>
-//#include <netinet/in.h>
-//#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include <stdlib.h>
 #include <unistd.h>
-//#include <netdb.h>
+#include <netdb.h>
 
 #include <string.h>
 
@@ -173,8 +173,8 @@ int readReply(FILE * socket){
     return 0;
 }
 
-int writeFile(char *filename, int socket ){
-    FILE *file = fopen(filename, "w");
+int writeToFile(char *file, int socket ){
+    FILE *file = fopen(file, "w");
 
     if(file == NULL){
         printf("Error opening file\n");
@@ -188,7 +188,7 @@ int writeFile(char *filename, int socket ){
         return 1;
     }
     
-    while(read(socket, c, 1) > 0){
+    while(read(socket, c, 1) > 0){  // read one byte at a time
         fputc(*c, file);
     }
 
@@ -197,19 +197,72 @@ int writeFile(char *filename, int socket ){
     return 0;
 }
 
-int main(void) {
-    char *url = "ftp://user:password@host/path/to/file";
-    URL urlStruct = {0};
 
-    if (parseUrl(url, &urlStruct) != 0) {
-        printf("Error parsing URL\n");
+
+int main(int argc, char **argv) {
+
+    if(argc != 2){
+          printf("Incorrect program usage\n"
+               "Usage: download ftp://<user>:<password>@<host>/<url> \n"
+               "Example anonymous user: download ftp://ftp.up.pt/pub/kodi/timestamp.txt \n"
+               "Example other user: download ftp://userName:password@ftp.up.pt/pub/kodi/timestamp.txt \n");
+        exit(1);
+    }
+
+    struct data dataInfo;
+    int sockfd, sockfdReceive;
+
+    if(parseData(argv[1], &dataInfo) != 0){
+        printf("Error parsing input\n");
+        return 1;
+    }
+    
+    if(startConnection(dataInfo.ip, 21, &sockfd) != 0){
+        printf("Error starting connection\n");
         return 1;
     }
 
-    printf("user: %s\n", urlStruct.user);
-    printf("password: %s\n", urlStruct.password);
-    printf("host: %s\n", urlStruct.host);
-    printf("path: %s\n", urlStruct.path);
+    FILE * readSockect = fdopen(sockfd, "r");
+    
+    readReply(readSockect);
+    
+    //credentials
+    char command[256];
+    sprintf(command, "user %s\n",dataInfo.user);
+    sendCommand(sockfd,command);
+    //sleep(1);
+    readReply(readSockect);
+    sprintf(command, "pass %s\n",dataInfo.password);
+    sendCommand(sockfd,command);
+    readReply(readSockect);
+    
+    //set mode
+    sprintf(command, "pasv \n");
+    sendCommand(sockfd,command);
 
+    //read ip and port 
+    char ip[32];
+    int port;
+    readIpPort(ip, &port, readSockect);
+    printf("ip: %s\n",ip);
+    printf("port: %i\n", port);
+
+    //open connection to receive data
+    if(startConnection(ip, port, &sockfdReceive) != 0){
+        printf("Error starting connection\n");
+        return 1;
+    }
+
+    sprintf(command, "retr %s\r\n",dataInfo.path);
+    sendCommand(sockfd,command);
+    readReply(readSockect);
+
+    readToFile(dataInfo.fileName, sockfdReceive);
+
+    //close
+    sprintf(command, "quit \r\n");
+    sendCommand(sockfd,command);
+    
     return 0;
+
 }

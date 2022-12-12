@@ -1,6 +1,6 @@
 #include "URL.h"
 
-int getIp(char *host, struct URL *urlStruct){
+int getIP(char *host, URL *urlStruct){
     struct hostent *h;
 
     if ((h = gethostbyname(host)) == NULL){
@@ -15,7 +15,7 @@ int getIp(char *host, struct URL *urlStruct){
     return 0;
 }
 
-int parseUrl(char *url, struct URL *urlStruct ){
+int parseURL(char *url, URL *urlStruct){
     char fullpath[256];
     char* token;
     char* ftp = strtok(url, "/");       // ftp:
@@ -43,17 +43,17 @@ int parseUrl(char *url, struct URL *urlStruct ){
     strcpy(urlStruct->user, user);
     strcpy(urlStruct->password, pass);
 
-    if(getIp(urlStruct->host,urlStruct) != 0){
+    if(getIP(urlStruct->host,urlStruct) != 0){
         printf("Error getting host name\n");
         return 1;
     }
 
     // extract the file name from the path
     strcpy(fullpath, urlStruct->path);
-    token = strtok(fullpath, "/");
-    while( token != NULL ) {
-        strcpy(urlStruct->filename, token);
-        token = strtok(NULL, "/");
+    char* token2 = strtok(fullpath, "/");
+    while( token2 != NULL ) {
+        strcpy(urlStruct->filename, token2);
+        token2 = strtok(NULL, "/");
     }
 
     return 0;
