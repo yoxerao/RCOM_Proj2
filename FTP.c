@@ -37,7 +37,7 @@ void getPortPlusIp(int *port, char *ip, FILE *socket){
     int foundLine = 0;
     while(!foundLine){
         getline(&fullString, &numBytes, socket);
-        printf("> %s", fullString);
+        printf("Pasv mode reply   > %s", fullString);
 
         if (fullString[3] == ' ') {
             
@@ -77,45 +77,91 @@ int sendCommand(int socket, char * cmd){
 int readReply(FILE * socket){
     char * reply = NULL;
     size_t reply_size = 0;
-    long code;
-    char * end;
 
     while(getline(&reply, &reply_size, socket) > 0){
-        printf("> %s", reply);
+        // I have absolutely no clue why, but even though the server always responds with a 3 digit code, 
+        // we get a segmentation fault before sending crefentials to the server if we don't check for a space after the 3rd character
         if(reply[3] == ' '){
-            code = strtol(reply, &end, 10);
-            if(code >= 500 && code <= 559){
-                printf("Error code: %ld\n", code);
+            if (reply[0] == '1'){
+            printf("Information reply > %s", reply);
+            }
+            else if (reply[0] == '2'){
+                printf("Success reply     > %s", reply);
+            }
+            else if (reply[0] == '3'){
+                printf("Redirect reply    > %s", reply);
+            }
+            else if (reply[0] == '4'){
+                printf("Temporary error   > %s", reply);
                 exit(1);
+            }
+            else if (reply[0] == '5'){
+                printf("Permanent error   > %s", reply);
+                exit(1);
+            }
+            else {
+                printf("Unknown reply     > %s", reply);
+                return -1;
             }
             break;
         }
+        if (reply[0] == '1'){
+            printf("Information reply > %s", reply);
+        }
+        else if (reply[0] == '2'){
+            printf("Success reply     > %s", reply);
+        }
+        else if (reply[0] == '3'){
+            printf("Redirect reply    > %s", reply);
+        }
+        else if (reply[0] == '4'){
+            printf("Temporary error   > %s", reply);
+            exit(1);
+        }
+        else if (reply[0] == '5'){
+            printf("Permanent error   > %s", reply);
+            exit(1);
+        }
+        else {
+            printf("Unknown reply     > %s", reply);
+            return -1;
+        }
+ 
     }
 
     free(reply);
     return 0;
 }
 
-int writeToFile(char *fileN, int socket ){
-    FILE *file = fopen(fileN, "w");
+int writeToFile(char *fileN, int socket) {
+ 
+  FILE *file = fopen(fileN, "w");
+  if (file == NULL) {
+    printf("Error opening file\n");
+    return 1;
+  }
 
-    if(file == NULL){
-        printf("Error opening file\n");
-        return 1;
-    }
+  
+  char *buffer = malloc(BUFSIZ);
+  if (buffer == NULL) {
+    printf("Error allocating memory\n");
+    return 1;
+  }
 
-    char *c = malloc(1);
-    if (c == NULL)
-    {
-        printf("Error allocating memory\n");
-        return 1;
-    }
-    
-    while(read(socket, c, 1) > 0){  // read one byte at a time
-        fputc(*c, file);
-    }
+  // Read data from the socket and write it to the file
+  ssize_t bytesRead;
+  while ((bytesRead = recv(socket, buffer, BUFSIZ, 0)) > 0) {
+    fwrite(buffer, 1, bytesRead, file);
+  }
 
-    free(c);
-    fclose(file);
-    return 0;
+
+  if (bytesRead < 0) {
+    perror("Error reading from socket");
+    return 1;
+  }
+
+  
+  free(buffer);
+  fclose(file);
+  return 0;
 }

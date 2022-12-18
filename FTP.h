@@ -10,6 +10,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <ctype.h>
 
 int startConnection(char *ip, int port, int *sockfd);
 void getPortPlusIp(int *port, char *ip, FILE *socket);

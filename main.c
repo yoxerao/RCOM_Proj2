@@ -30,18 +30,19 @@ int main(int argc, char **argv) {
         printf("Error starting connection\n");
         return 1;
     }
-
+    printf("Connection established\n");
 	// Open the socket for reading and writing
     FILE * readSocket = fdopen(socketfd, "r");
 	// Read the initial reply from the FTP server
     if (readReply(readSocket) != 0){
 		return 1;
 	}
-    
+
     
     char cmd[256];
 	// Log in to the FTP server using the provided username and password
     sprintf(cmd, "user %s\n",urlStruct.user);
+    printf("cmd: %s", cmd);
     if (sendCommand(socketfd,cmd) != 0){
 		return 1;
 	}
@@ -50,13 +51,14 @@ int main(int argc, char **argv) {
 	}
 
     sprintf(cmd, "pass %s\n",urlStruct.password);
+    printf("cmd: %s", cmd);
     if (sendCommand(socketfd,cmd) != 0){
 		return 1;
 	}
 	if (readReply(readSocket) != 0){
 		return 1;
 	}
-    
+
     // Enter passive mode and retrieve the server's IP and port
     sprintf(cmd, "pasv \n");
     if (sendCommand(socketfd,cmd) != 0){
