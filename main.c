@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
         printf("Error parsing input\n");
         return 1;
     }
-    printf("ASDASDASD");
+
 	// Connect to the FTP server and check for errors
     if(startConnection(urlStruct.ip, 21, &socketfd) != 0){ // check port config
         printf("Error starting connection\n");
