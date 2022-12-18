@@ -18,13 +18,13 @@ int main(int argc, char **argv) {
 
     struct URL urlStruct;
     int socketfd, socket;
-
+    printf("URL: %s\n", argv[1]);
 	// Parse the URL and check for errors
     if(parseURL(argv[1], &urlStruct) != 0){
         printf("Error parsing input\n");
         return 1;
     }
-    
+    printf("ASDASDASD");
 	// Connect to the FTP server and check for errors
     if(startConnection(urlStruct.ip, 21, &socketfd) != 0){ // check port config
         printf("Error starting connection\n");

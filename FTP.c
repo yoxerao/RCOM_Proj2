@@ -14,6 +14,8 @@ int startConnection(char *ip, int port, int *sockfd){
         perror("socket()");
         exit(-1);
     }
+    
+    
 
     /*connect to the server*/
     if (connect(*sockfd,

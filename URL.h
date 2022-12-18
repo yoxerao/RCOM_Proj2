@@ -11,12 +11,13 @@
 
 // URL structure
 typedef struct URL{
-    char user[256];
-    char password [256];
-    char host[256];
-    char path[256];
-    char filename[256];
-    char ip[256];
+    char *scheme;
+    char *user;
+    char *password;
+    char *host;
+    char *path;
+    char *filename;
+    char *ip;
     int port;
 } URL;
 
