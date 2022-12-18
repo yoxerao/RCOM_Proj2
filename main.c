@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
     char cmd[256];
 	// Log in to the FTP server using the provided username and password
     sprintf(cmd, "user %s\n",urlStruct.user);
-    printf("cmd: %s", cmd);
+
     if (sendCommand(socketfd,cmd) != 0){
 		return 1;
 	}
@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
 	}
 
     sprintf(cmd, "pass %s\n",urlStruct.password);
-    printf("cmd: %s", cmd);
+
     if (sendCommand(socketfd,cmd) != 0){
 		return 1;
 	}
